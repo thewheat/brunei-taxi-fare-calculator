@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Brunei Taxi Fare Calculator</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href=./dist/bootstrap/bootstrap.min.css rel=stylesheet>
+	<style type="text/css">
+		.checkbox-inline+.checkbox-inline, .radio-inline+.radio-inline{
+			margin-left: auto;
+		}
+		.checkbox-inline.checkbox-inline, .radio-inline.radio-inline{
+			margin-left: auto;
+			margin-right: 10px;
+		}
+		footer ul{
+			margin: 0;
+			padding: 0em;
+		}
+		.page-header {
+			margin-top: 0;
+			margin-bottom: 0.5em;
+		}
+		.details {
+			text-align: center;
+		}
+		.details h3 {
+			margin: 0.5em 0;
+		}
+
+		
+
+		@media only screen and (max-width: 767px) {
+			.details {
+				position: fixed;
+				right: 0;
+				z-index: 5;
+			}
+		}
+
+	</style>
+	<link rel="apple-touch-icon-precomposed" sizes="57x57" href="ico/apple-touch-icon-57x57.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="ico/apple-touch-icon-114x114.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72x72.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="ico/apple-touch-icon-144x144.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="60x60" href="ico/apple-touch-icon-60x60.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="120x120" href="ico/apple-touch-icon-120x120.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="76x76" href="ico/apple-touch-icon-76x76.png" />
+	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="ico/apple-touch-icon-152x152.png" />
+	<link rel="icon" type="image/png" href="ico/favicon-196x196.png" sizes="196x196" />
+	<link rel="icon" type="image/png" href="ico/favicon-96x96.png" sizes="96x96" />
+	<link rel="icon" type="image/png" href="ico/favicon-32x32.png" sizes="32x32" />
+	<link rel="icon" type="image/png" href="ico/favicon-16x16.png" sizes="16x16" />
+	<link rel="icon" type="image/png" href="ico/favicon-128.png" sizes="128x128" />
+	<meta name="application-name" content="&nbsp;"/>
+	<meta name="msapplication-TileColor" content="#FFFFFF" />
+	<meta name="msapplication-TileImage" content="ico/mstile-144x144.png" />
+	<meta name="msapplication-square70x70logo" content="ico/mstile-70x70.png" />
+	<meta name="msapplication-square150x150logo" content="ico/mstile-150x150.png" />
+	<meta name="msapplication-wide310x150logo" content="ico/mstile-310x150.png" />
+	<meta name="msapplication-square310x310logo" content="ico/mstile-310x310.png" />
+
+</head>
+<body>
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Brunei Taxi Fare Calculator</a>
+        </div>
+      </div>
+    </nav>
+<div class="container">
+	<div class="row">
+	<div class="details bg-info col-sm-6 col-sm-push-6">
+		<h3>BND$<span id="cost">0</span></h3>
+		<h4 class="summary"><span class="hidden-xs">Distance: </span><span id="distance"></span></h4>
+		<h4 class="summary"><span class="hidden-xs">Duration: </span><span id="duration"></span></h4>
+	</div>
+	<div class="form col-sm-6 col-sm-pull-6">
+		<form id="calculateCost">
+		
+		<label class="radio-inline"><input class="" type="radio" name="selectDistance" value="locations" checked="checked"> Specify locations</label>
+		<label class="radio-inline"><input class="" type="radio" name="selectDistance" value="manual"> Manually specify distance</label>
+
+		<div id="locationsContainer" class="selectDistance">
+			<div class="form-group address-autocomplete" id="addressFrom-autocomplete">
+				<label>From: 
+					<input class="form-control pickerContainer" type="text" name="" id="addressFrom">
+				</label>
+				<div class="selectedContainer">
+					<a class="clearSelected">[X]</a> <span class="selected" id="addressFromSelected"></span>
+				</div>
+			</div>
+			<div class="form-group address-autocomplete" id="addressTo-autocomplete">
+				<label>To: 
+					<input class="form-control pickerContainer" type="text" name="" id="addressTo">
+				</label>
+				<div class="selectedContainer">
+					<a class="clearSelected">[X]</a> <span class="selected" id="addressToSelected"></span>
+				</div>
+			</div>
+		</div>
+		<div id="manualContainer" class="selectDistance">
+			<div class="form-group"><label>Distance (m)<input class="form-control" type="text" name="distance" value=""></label></div>
+		</div>
+		<div class="checkbox"><label><input type="checkbox" id="night" name="night" value="1"> Night surcharge? (6pm-6am)</label></div>
+		<div class="checkbox"><label><input type="checkbox" name="airport" value="1"> To/From Airport</label></div>
+		<div class="form-group"><label>Number of district crossings <input class="form-control" type="number" name="districts" value="0"></label></div>
+		<div class="form-group"><label>Number of luggage (2 free) <input class="form-control" type="number" name="luggage" value="0"></label></div>
+		<div class="form-group"><label>Number of people (4 free) <input class="form-control" type="number" name="people" value="0"></label></div>
+		</form>
+	</div>
+    <div id="map"></div>
+	</div>
+	<div class="row">
+    <footer class="well">
+    	<ul>
+    	<li>Acknowledgements to <a href="https://twitter.com/possiblyzebra/status/860777077024444416/photo/1">@possiblyzebra's tweet</a></li>
+
+    	<li><strong>Source</strong>: <a href="http://www.mincom.gov.bn/ltd/Lists/News/NDispForm.aspx?ID=239">Land Transport Department</a></li>
+
+    	<li>Fares (<a href="files/taxi-fare-draft.jpg">JPG</a> | <a href="files/taxi-fare-draft.pdf">PDF</a>)</li>
+    	</ul>
+    </footer>
+	</div>
+</div>
+</body>
+<script type="text/javascript" src="./dist/jquery/jquery.min.js"></script>
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yHIJEGAJzk&libraries=places&callback=initMap">
+</script>
+
+<script type="text/javascript">
+	var SELECTED = {};
+	function initMap() {
+		initAutocomplete()
+		document.getElementById("night").checked = hasNightSurcharge();
+		$("input[name=selectDistance]").click(function(e){
+			$(".selectDistance").hide();
+			$("#" + this.value + "Container").show();
+		});
+		$(".clearSelected").click(function(event){
+			var parent = $(this).closest(".address-autocomplete");
+			parent.find(".selectedContainer").hide();
+			var picker = parent.find(".pickerContainer");
+			picker.show().val("");
+			SELECTED[picker.attr("id")] = null;
+			SELECTED['distance'] = null;
+		});
+		$("#manualContainer, .selectedContainer, .summary").hide();
+
+		$("form input").on("change keyup", function(event){
+			if(manuallyCalculate() || !manuallyCalculate() && SELECTED['distance']){
+				calculateCost();
+			}
+		})
+		$( "form#calculateCost" ).on( "submit", function( event ) {
+			event.preventDefault();
+			if(manuallyCalculate() || !manuallyCalculate() && SELECTED['distance']){
+				calculateCost();
+			}
+		});
+
+	}
+	function manuallyCalculate(){
+		return (getFormInputAsObject().selectDistance || "") == "manual";
+	}
+
+	function initAutocomplete() {
+		var AUTOCOMPLETE_OPTIONS = {
+			componentRestrictions: {
+				country: 'BN',
+			}
+		};
+		autocompleteFrom = new google.maps.places.Autocomplete(document.getElementById('addressFrom'), AUTOCOMPLETE_OPTIONS);
+		autocompleteTo = new google.maps.places.Autocomplete(document.getElementById('addressTo'), AUTOCOMPLETE_OPTIONS);
+		autocompleteFrom.addListener('place_changed', function(){fillInAddress(autocompleteFrom,'addressFrom')});
+		autocompleteTo.addListener('place_changed', function(){fillInAddress(autocompleteTo,'addressTo')});
+	}
+
+	function fillInAddress(autoCompleteObject, source) {
+		var place = autoCompleteObject.getPlace();
+		SELECTED[source] = place;
+		var selected = $("#" + source+"Selected");
+		var name = place.name || "";
+		if(name) name += ": "
+		name += autoCompleteObject.getPlace().formatted_address;
+		selected.text(name);
+		selected.parent(".selectedContainer").show();
+		$("#" + source+"").hide();
+		checkGeocode();
+	}
+	function checkGeocode(){
+		if(SELECTED['addressFrom'] && SELECTED['addressTo']){
+			geoCode(SELECTED['addressFrom'], SELECTED['addressTo'])
+		}
+	}
+	function geoCode(from, to){
+        var origin = {lat: from.geometry.location.lat(), lng: from.geometry.location.lng()};
+        var destination = {lat: to.geometry.location.lat(), lng: to.geometry.location.lng()};
+        var geocoder = new google.maps.Geocoder;
+        var service = new google.maps.DistanceMatrixService;
+        service.getDistanceMatrix({
+          origins: [origin],
+          destinations: [destination],
+          travelMode: 'DRIVING',
+          unitSystem: google.maps.UnitSystem.METRIC,
+          avoidHighways: false,
+          avoidTolls: false
+        }, function(response, status) {
+          if (status !== 'OK') {
+            alert('Error was: ' + status);
+          } else {
+            var originList = response.originAddresses;
+            var destinationList = response.destinationAddresses;
+
+            for (var i = 0; i < originList.length; i++) {
+              var results = response.rows[i].elements;
+              for (var j = 0; j < results.length; j++) {
+                if(j == 0){
+                	SELECTED['route'] = results[j];
+                	SELECTED['distance'] = results[j].distance.value;
+                	calculateCost(results[j].distance.value);
+                }
+              }
+            }
+          }
+        });
+      }
+
+
+	function calculateCost(distance, options){
+		if(distance){
+			var cost = costBasedOnDistance(distance);
+			var extra = calculateExtras(options || getFormInputAsObject(), cost);
+			$("#cost").text(((cost+extra)/100).toFixed(2));
+			if(SELECTED['route']){
+				$("#distance").text(SELECTED['route'].distance.text);
+				$("#duration").text(SELECTED['route'].duration.text);
+				$(".summary").show();
+			}
+			else
+				$(".summary").hide();
+
+		}
+		else {
+			data = getFormInputAsObject();
+			if(data.selectDistance == "manual"){
+				if(!isNaN(parseInt(data.distance)))
+					calculateCost(data.distance, data);
+			}
+			else if(SELECTED['distance'] != 0){
+				calculateCost(SELECTED['distance'], data);
+			}
+		}
+
+	}
+	function getFormInputAsObject(){
+		var output = {};
+		var array = $( "form#calculateCost" ).serializeArray();
+		for(var i = 0; i < array.length; i++){
+			var data = array[i];
+			output[data.name] = data.value;
+		}
+		return output;
+	}
+
+	function hasNightSurcharge(){
+		var d = new Date();
+		var currentHourInBrunei = d.getUTCHours()+8%24;
+		return currentHourInBrunei < 6 || currentHourInBrunei >= 18;
+	}
+	// Source: 
+	// http://www.mincom.gov.bn/ltd/SiteAssets/Jadual%20Kadar%20Tambang%20Teksi.pdf
+	// http://www.mincom.gov.bn/ltd/SiteAssets/Lists/News/AllItems/(DRAFT)%20JADUAL%20KADAR%20TAMBANG%20TEKSI%20A5%20SIZE.jpg
+	var BASE_COST = 350;
+
+	function costBasedOnDistance(totalDistanceInMetres){
+		var freeDistance = 1000;
+		var costInCentsPerInterval = 20;
+		var intervalDistanceInMetres = 250;
+
+		if(totalDistanceInMetres > freeDistance)
+			return BASE_COST + (totalDistanceInMetres - freeDistance) / intervalDistanceInMetres * costInCentsPerInterval;
+		return BASE_COST;
+	}
+	function costBasedOnTime(totalTimeInSeconds){
+		var freeTime = 1 * 60;
+		var costInCentsPerInterval = 20;
+		var intervalPeriodInSeconds = 15;
+
+		if(totalTimeInSeconds > freeTime)
+			return BASE_COST + (totalTimeInSeconds - freeTime) / intervalPeriodInSeconds * costInCentsPerInterval;
+		return BASE_COST;
+	}
+	function calculateAreaSurcharge(options){
+		var cost = 0;
+		cost += calculateAreaSurchargeAirport(options.airport);
+		cost += calculateAreaSurchargeDistricts(options.districts);
+		return cost;	
+	}
+	function calculateAreaSurchargeAirport(toOrFromAirport){
+		var AIRPORT_COST = 300;
+		return costBasedOnToggle(toOrFromAirport, AIRPORT_COST)
+	}
+	function calculateAreaSurchargeDistricts(districts){
+		var DISTRICT_CROSS_COST = 800;
+		return costBasedOnInteger(districts,0,DISTRICT_CROSS_COST);
+	}
+	function costBasedOnToggle(value, amount){
+		if(typeof(value) != "undefined" && value) 
+			return amount;
+		return 0;
+	}
+	function costBasedOnInteger(countAsText, free, amountForExtra){
+		var count = parseInt(countAsText)
+		if(isNaN(count)) count = free;
+		if(count > free){
+			return (count - free) * amountForExtra;
+		}
+		return 0;
+	}
+
+	function calculateNightSurcharge(isNight, currentCost){
+		if(typeof(isNight) == "undefined" || !isNight) return 0;
+		var nightSurchargeExtraPercentageCost = 0.5;
+		return currentCost * nightSurchargeExtraPercentageCost;
+	}
+	function calculateBookingCharge(didBook){
+		var BOOKING_COST_IN_CENTS = 200;
+		return costBasedOnToggle(didBook, BOOKING_COST_IN_CENTS)
+	}
+	function calculateLuggageCharge(luggageCount){
+		var FREE_LUGGAGE = 2;
+		var LUGGAGE_COST_IN_CENTS_PER_EXTRA_LUGGAGE = 200;
+		return costBasedOnInteger(luggageCount, FREE_LUGGAGE, LUGGAGE_COST_IN_CENTS_PER_EXTRA_LUGGAGE);
+	}
+	function calculatePeopleCharge(peopleCount){
+		var FREE_PEOPLE = 4;
+		var PEOPLE_COST_IN_CENTS_PER_EXTRA_PEOPLE = 200;
+		return costBasedOnInteger(peopleCount, FREE_PEOPLE, PEOPLE_COST_IN_CENTS_PER_EXTRA_PEOPLE);
+	}
+	function calculateExtras(extraOptions, currentCostInCents){
+		var extraCost = 0;
+
+		extraCost += calculateAreaSurcharge(extraOptions,currentCostInCents);
+		extraCost += calculateNightSurcharge(extraOptions.night, currentCostInCents);
+		extraCost += calculateBookingCharge(extraOptions['booking']);
+		extraCost += calculateLuggageCharge(extraOptions['luggage']);
+		extraCost += calculatePeopleCharge(extraOptions['people']);
+		return extraCost;
+	}
+</script>
+</html>
