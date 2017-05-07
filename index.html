@@ -27,7 +27,10 @@
 			margin: 0.5em 0;
 		}
 
-		
+		.form-group.number .input-group{
+			width:9em;
+			text-align: center;
+		}
 
 		@media only screen and (max-width: 767px) {
 			.details {
@@ -105,9 +108,33 @@
 		<div class="checkbox"><label><input type="checkbox" id="night" name="night" value="1"> Night surcharge? (6pm-6am)</label></div>
 		<div class="checkbox"><label><input type="checkbox" name="booking" value="1"> Phone/App booking?</label></div>
 		<div class="checkbox"><label><input type="checkbox" name="airport" value="1"> To/From Airport?</label></div>
-		<div class="form-group"><label>Number of district crossings <input class="form-control" type="number" name="districts" value="0"></label></div>
-		<div class="form-group"><label>Number of luggage (2 free) <input class="form-control" type="number" name="luggage" value="0"></label></div>
-		<div class="form-group"><label>Number of people (4 free) <input class="form-control" type="number" name="people" value="0"></label></div>
+		<div class="form-group number">
+			<label>Number of district crossings
+				<div class="input-group">
+					<div class="input-group-addon btn">-</div>
+					<input class="form-control" type="number" name="districts" value="0">
+					<div class="input-group-addon btn">+</div>
+				</div>
+			</label>
+		</div>
+		<div class="form-group number">
+			<label>Number of luggage (2 free)
+				<div class="input-group">
+					<div class="input-group-addon btn">-</div>
+					<input class="form-control" type="number" name="luggage" value="0">
+					<div class="input-group-addon btn">+</div>
+				</div>
+			</label>
+		</div>
+		<div class="form-group number">
+			<label>Number of people (4 free)
+				<div class="input-group">
+					<div class="input-group-addon btn">-</div>
+					<input class="form-control" type="number" name="people" value="0">
+					<div class="input-group-addon btn">+</div>
+				</div>
+			</label>
+		</div>
 		</form>
 	</div>
     <div id="map"></div>
@@ -139,6 +166,17 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 			$(".selectDistance").hide();
 			$("#" + this.value + "Container").show();
 		});
+		$(".input-group-addon.btn").click(function(){
+			var increment = +1;
+			if ($(this).text() == "-") increment =-1;
+			var input = $(this).closest(".input-group").find("input[type=number]").eq(0);
+			var count = parseInt(input.val());
+			if(isNaN(count)) count = 0;
+			count+=increment;
+			if(count < 0) count = 0;
+			input.val(count);
+			checkCalculateCost();
+		});
 		$(".clearSelected").click(function(event){
 			var parent = $(this).closest(".address-autocomplete");
 			parent.find(".selectedContainer").hide();
@@ -150,22 +188,22 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 		$("#manualContainer, .selectedContainer, .summary").hide();
 
 		$("form input").on("change keyup", function(event){
-			if(manuallyCalculate() || !manuallyCalculate() && SELECTED['distance']){
-				calculateCost();
-			}
+			checkCalculateCost();
 		})
 		$( "form#calculateCost" ).on( "submit", function( event ) {
 			event.preventDefault();
-			if(manuallyCalculate() || !manuallyCalculate() && SELECTED['distance']){
-				calculateCost();
-			}
+			checkCalculateCost();
 		});
 
 	}
-	function manuallyCalculate(){
+	function shouldManuallyCalculate(){
 		return (getFormInputAsObject().selectDistance || "") == "manual";
 	}
-
+	function checkCalculateCost(){
+		if(shouldManuallyCalculate() || !shouldManuallyCalculate() && SELECTED['distance']){
+			calculateCost();
+		}
+	}
 	function initAutocomplete() {
 		var AUTOCOMPLETE_OPTIONS = {
 			componentRestrictions: {
