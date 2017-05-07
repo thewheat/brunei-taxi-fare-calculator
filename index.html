@@ -259,7 +259,8 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 				google.maps.event.trigger(MAP, 'resize');
 			}, 200);
 		});
-		$(".form-group.number .input-group-addon.btn").click(function(){
+		$(".form-group.number .input-group-addon.btn").click(function(e){
+			e.preventDefault();
 			var increment = +1;
 			if ($(this).text() == "-") increment =-1;
 			var input = $(this).closest(".input-group").find("input[type=number]").eq(0);
