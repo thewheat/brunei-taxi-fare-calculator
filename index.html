@@ -39,12 +39,12 @@
 			width:25em;
 		}
 
+		#mapDisplay{
+			background: rgba(255,255,255,0.9);
+		}
 		#map{
 			width: 100%;
 			height: 200px;
-		}
-		#mapDisplay{
-			background: rgba(255,255,255,0.9);
 		}
 
 		@media only screen and (max-width: 767px) {
@@ -63,7 +63,7 @@
 			}
 			#map{
 				width: 100%;
-				height: 200px;
+				height: 300px;
 			}
 			.address-autocomplete .input-group{
 				width:100%;
@@ -111,7 +111,7 @@
 		</div>
 		<div id="mapDisplay">
 				<span class="form-control" id="latlng"></span>
-				<input class="btn-inline btn btn-info" type="button" value="Go to my location" data-action="find-me">
+				<input class="btn-inline btn btn-info" type="button" value="Locate me" data-action="find-me">
 				<div class="btn btn-primary" data-action="use-this">Use this location</div>
 				<div class="btn btn-danger" data-action="dismiss">X</div>
 		    <div id="map"></div>
