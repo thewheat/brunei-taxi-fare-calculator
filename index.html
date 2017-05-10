@@ -24,11 +24,11 @@
 			text-align: center;
 		}
 		.details {
-			padding: 0.25em;
+			padding: 1em;
 			margin-bottom: 1em;
 		}
 		.details h3 {
-			margin: 0.5em;
+			margin: 0;
 		}
 
 		.form-group.number .input-group{
@@ -53,6 +53,15 @@
 			padding-left: 3.5em;
 		}
 
+		#latlng {
+			border: 1px solid #ddd;
+			padding: 0.5em;
+			margin-bottom: 0.5em;
+			height: 2.5em;
+		}
+		#map{
+			margin-top: 1em;
+		}
 		@media only screen and (max-width: 767px) {
 			.sidebar {
 				position: fixed;
@@ -110,16 +119,24 @@
 <div class="container">
 	<div class="row">
 	<div class="sidebar col-sm-6 col-sm-push-6">
-		<div class="details bg-info">
+		<div class="details bg-info hidden-xs">
 			<h3>BND$<span id="cost">0</span></h3>
 			<h4 class="summary"><span class="hidden-xs">Distance: </span><span id="distance"></span></h4>
 			<h4 class="summary"><span class="hidden-xs">Duration: </span><span id="duration"></span></h4>
+			<span class="visible-xs-inline toolbar-mobile">
+				<div class="btn btn-primary show-map hidden" data-action="show-map">Show Map</div>
+			</span>
 		</div>
 		<div id="mapDisplay">
-				<span class="form-control" id="latlng"></span>
-				<input class="btn-inline btn btn-info" type="button" value="Locate me" data-action="find-me">
-				<div class="btn btn-primary" data-action="use-this">Use this location</div>
-				<div class="btn btn-danger" data-action="dismiss">X</div>
+				<span class="toolbar">
+					<div id="latlng"></div>
+					<input class="btn-inline btn btn-info" type="button" value="Locate me" data-action="find-me">
+					<div class="btn btn-primary" data-action="use-this">Use this location</div>
+					<div class="btn btn-danger" data-action="dismiss">X</div>
+				</span>
+				<span class="visible-xs-inline toolbar-mobile">
+					<div class="btn btn-danger dismiss hidden" data-action="dismiss">X</div>
+				</span>
 		    <div id="map"></div>
 		</div>
 
@@ -135,7 +152,7 @@
 				<label>From: 
 					<div class="input-group pickerContainer">
 						<input class="form-control picker" type="text" name="" id="addressFrom">
-						<div class="input-group-addon btn showMap" data-source="addressFrom">Show Map</div>
+						<div class="input-group-addon btn show-map" data-source="addressFrom">Show Map</div>
 					</div>
 				</label>
 				<div class="selectedContainer">
@@ -146,7 +163,7 @@
 				<label>To: 
 					<div class="input-group pickerContainer">
 						<input class="form-control picker" type="text" name="" id="addressTo">
-						<div class="input-group-addon btn showMap" data-source="addressTo">Show Map</div>
+						<div class="input-group-addon btn show-map" data-source="addressTo">Show Map</div>
 					</div>
 				</label>
 				<div class="selectedContainer">
@@ -210,6 +227,7 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 	var SELECTED = {};
 	var MAP = null;
 	var MARKER = null;
+	var DIRECTIONS = null;
 	function initMap() {
 		initAutocomplete();
 		document.getElementById("night").checked = hasNightSurcharge();
@@ -225,6 +243,8 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
           position: MAP.getCenter(),
           map: MAP
         });
+
+        DIRECTIONS = new google.maps.DirectionsRenderer;
 
 		//MAP.addListener('center_changed', moveMapTo);
 		MAP.addListener('click', moveMapTo);
@@ -242,26 +262,27 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 				var pos = $("#latlng").text().split(",");
 				var source = $("#mapDisplay").hide().data("source");
 				SELECTED[source] = new google.maps.LatLng(pos[0], pos[1]);
-				$("#mapDisplay").hide().data("source", "");
+				hideMap();
 				setSelectedAddress($("#latlng").text(), source);
 				checkGeocode();
 			}else if(action=="find-me"){
 				findMe();
 			}else if(action=="dismiss"){
-				$("#mapDisplay").hide().data("source", "");
+				hideMap();
+				$(".toolbar-mobile .show-map").toggleClass("hidden", false);
 			}
+		});
+		$(".toolbar-mobile .show-map").on("click", function(){
+			$("#mapDisplay").show();
+			$(".toolbar-mobile .show-map").toggleClass("hidden", true);
 		});
 		$("input[name=selectDistance]").click(function(e){
 			$(".selectDistance").hide();
 			$("#" + this.value + "Container").show();
 		});
-		$(".form-group.address-autocomplete .input-group-addon.btn").click(function(e){
+		$(".form-group.address-autocomplete .input-group-addon.show-map").click(function(e){
 			e.preventDefault();
-			var MAP_SELECT = $(this).data("source");
-			$("#mapDisplay").show().data("source", MAP_SELECT);
-			setTimeout(function(){
-				google.maps.event.trigger(MAP, 'resize');
-			}, 200);
+			showMap(true, $(this).data("source"));
 		});
 		$(".form-group.number .input-group-addon.btn").click(function(e){
 			e.preventDefault();
@@ -282,9 +303,7 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 			pickerContainer.show();
 			var picker = pickerContainer.find(".picker");
 			picker.val("");
-			SELECTED[picker.attr("id")] = null;
-			SELECTED['distance'] = null;
-			clearDetails();
+			clearDetails(picker.attr("id"));
 		});
 		$("#manualContainer, .selectedContainer, .summary, #mapDisplay").hide();
 
@@ -336,6 +355,40 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 				break;
 		}
 	}
+	function hideMap(){
+		// $(".details .show-map").toggleClass("visible-xs-inline", false);
+		$("#mapDisplay").hide().data("source", "");
+	}
+	function showMap(showControls,source,directions){
+		if(showControls){
+			MARKER.setMap(MAP);
+		}
+		else{
+			MARKER.setMap(null);
+		}
+		$("#mapDisplay").show();
+		$("#mapDisplay .toolbar").toggle(showControls);
+
+		if(source)
+			$("#mapDisplay").data("source", source);
+
+		setTimeout(function(){
+			google.maps.event.trigger(MAP, 'resize');
+			//$(".details .show-map").toggleClass("visible-xs-inline", directions);
+			$(".toolbar-mobile .dismiss").toggleClass("hidden", !directions);
+			if(directions){
+				DIRECTIONS.setMap(MAP);
+				DIRECTIONS.setDirections(directions);
+				$(".toolbar-mobile .show-map").toggleClass("hidden", true);
+			}
+			else{
+		        DIRECTIONS.setMap(null);
+			}
+		}, 200);
+	}
+	function showRoute(response){
+		showMap(false,null,response);
+	}
 	function shouldManuallyCalculate(){
 		return (getFormInputAsObject().selectDistance || "") == "manual";
 	}
@@ -381,50 +434,55 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 		if(fromRaw.geometry && fromRaw.geometry.location) from = fromRaw.geometry.location;
 		var to = toRaw;
 		if(toRaw.geometry && toRaw.geometry.location) to = toRaw.geometry.location;
-        var origin = {lat: from.lat(), lng: from.lng()};
-        var destination = {lat: to.lat(), lng: to.lng()};
-        var geocoder = new google.maps.Geocoder;
-        var service = new google.maps.DistanceMatrixService;
-        service.getDistanceMatrix({
-			origins: [origin],
-			destinations: [destination],
-			travelMode: 'DRIVING',
-			unitSystem: google.maps.UnitSystem.METRIC,
-			avoidHighways: false,
-			avoidTolls: false
-        }, function(response, status) {
-			if (status !== 'OK') {
-				alert('Error was: ' + status);
-			} else {
-				var originList = response.originAddresses;
-				var destinationList = response.destinationAddresses;
+		var origin = {lat: from.lat(), lng: from.lng()};
+		var destination = {lat: to.lat(), lng: to.lng()};
+		var geocoder = new google.maps.Geocoder;
 
-				for (var i = 0; i < originList.length; i++) {
-					var results = response.rows[i].elements;
-					for (var j = 0; j < results.length; j++) {
+		var directionsService = new google.maps.DirectionsService;
+		directionsService.route(
+			{
+				origin: origin,
+				destination: destination,
+				travelMode: 'DRIVING',
+				unitSystem: google.maps.UnitSystem.METRIC
+			},
+			function(response, status) {
+				if (status !== 'OK') {
+					alert('Error was: ' + status);
+				}
+				else {
+					showRoute(response);
+					for (var j = 0; j < response.routes.length; j++) {
 						if(j == 0){
-							SELECTED['route'] = results[j];
-							SELECTED['distance'] = results[j].distance.value;
-							calculateCost(results[j].distance.value);
+							SELECTED['route'] = response.routes[j];
+							SELECTED['distance'] = response.routes[j].legs[0].distance.value;
+							calculateCost(response.routes[j].legs[0].distance.value);
 						}
 					}
 				}
 			}
-		});
+		);
 	}
 
-	function clearDetails(){
+	function clearDetails(data){
+		$(".details").toggleClass("hidden-xs", true);
+		$(".toolbar-mobile .show-map").toggleClass("hidden", false);
 		$("#cost").text("0");
 		$(".summary").hide();
+		SELECTED[data] = null;
+		SELECTED['distance'] = null;
+		hideMap();
 	}
 	function calculateCost(distance, options){
-		if(distance){
+		if(typeof(distance) != "undefined"){
 			var cost = costBasedOnDistance(distance);
 			var extra = calculateExtras(options || getFormInputAsObject(), cost);
 			$("#cost").text(((cost+extra)/100).toFixed(2));
+			$(".details").toggleClass("hidden-xs", false);
+
 			if(SELECTED['route']){
-				$("#distance").text(SELECTED['route'].distance.text);
-				$("#duration").text(SELECTED['route'].duration.text);
+				$("#distance").text(SELECTED['route'].legs[0].distance.text);
+				$("#duration").text(SELECTED['route'].legs[0].duration.text);
 			}
 			$(".summary").toggle(!shouldManuallyCalculate());
 
@@ -432,10 +490,12 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 		else {
 			data = getFormInputAsObject();
 			if(data.selectDistance == "manual"){
+				hideMap();
 				if(!isNaN(parseInt(data.distance)))
 					calculateCost(data.distance, data);
 			}
 			else if(SELECTED['distance'] != 0){
+				$("#mapDisplay").show();
 				calculateCost(SELECTED['distance'], data);
 			}
 		}
