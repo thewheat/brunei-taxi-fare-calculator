@@ -66,15 +66,17 @@
 			.sidebar {
 				position: fixed;
 				right: 0;
+				top: 3em;
 				z-index: 5;
 			}
 			#mapDisplay{
 				z-index: 2;
 				position: fixed;
-				bottom: 1em;
-				left: 1em;
-				right: 1em;
-				border: 1px solid black;
+				bottom: 0.5em;
+				left: 0.5em;
+				right: 0.5em;
+				border: 1px solid #ddd;
+				padding-top: 0.5em;
 			}
 			#map{
 				width: 100%;
@@ -123,7 +125,7 @@
 			<h3>BND$<span id="cost">0</span></h3>
 			<h4 class="summary"><span class="hidden-xs">Distance: </span><span id="distance"></span></h4>
 			<h4 class="summary"><span class="hidden-xs">Duration: </span><span id="duration"></span></h4>
-			<span class="visible-xs-inline toolbar-mobile">
+			<span class="toolbar-mobile">
 				<div class="btn btn-primary show-map hidden" data-action="show-map">Show Map</div>
 			</span>
 		</div>
@@ -246,6 +248,11 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 
         DIRECTIONS = new google.maps.DirectionsRenderer;
 
+
+		window.addEventListener('resize', function(e) {
+			google.maps.event.trigger(MAP, 'resize');
+		});
+
 		//MAP.addListener('center_changed', moveMapTo);
 		MAP.addListener('click', moveMapTo);
 		MAP.addListener('resize', function(e) {
@@ -275,6 +282,7 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 		$(".toolbar-mobile .show-map").on("click", function(){
 			$("#mapDisplay").show();
 			$(".toolbar-mobile .show-map").toggleClass("hidden", true);
+			google.maps.event.trigger(MAP, 'resize');
 		});
 		$("input[name=selectDistance]").click(function(e){
 			$(".selectDistance").hide();
@@ -495,7 +503,8 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXvfyqM5sQTVf06YGl37fs1yH
 					calculateCost(data.distance, data);
 			}
 			else if(SELECTED['distance'] != 0){
-				$("#mapDisplay").show();
+				// $("#mapDisplay").show();
+				$(".toolbar-mobile .show-map").toggleClass("hidden", false);
 				calculateCost(SELECTED['distance'], data);
 			}
 		}
